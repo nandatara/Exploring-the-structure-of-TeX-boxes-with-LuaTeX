@@ -1,0 +1,89 @@
+\newtoks\olfilename 
+\newtoks\dvifilename
+\newcount\examcnt
+\examcnt=0\relax
+\newtoks\verby
+\setlength{\fboxsep}{0pt}%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Register hiviznodelist.lua with LuaTeX and
+% define the function that runs external commands
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\directlua{
+require("./TeXandLuaCode/hiviznodelist.lua")
+function docommand(cmd)
+  local fout = assert(io.popen(cmd, 'r'))
+  local str = assert(fout:read('*a'))
+  fout:close()
+  return str
+end}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Simple verbatim code. I know, packages exist:-)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\writebox{%
+\newwrite\out%
+\immediate\openout\out=testverb.tex
+\begingroup\nullcats\aux}%
+\def\aux#1{\write\out{#1}\closeout\out\endgroup}
+\def\docats#1{\catcode`#1=12\relax}%
+\def\nullcats{\docats\^\docats\_\docats\ \docats\\\docats\$\docats\&%
+\docats\#\docats\%}%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Code to create PDF + SVG files of node structures
+% from the .dot language output by hiviznodelist.lua
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\writebox#1#2{%
+\directlua{%
+local filename="mybox".."#2"
+local pdfname=filename..".pdf"
+tex.toks["olfilename"]=pdfname
+local pdfdot="dot -Tpdf mybox.gv -o "..filename..".pdf"
+local svgdot="dot -Tsvg mybox.gv -o "..filename..".svg"
+hiviznodelist.nodelist_visualize(#1,"mybox.gv")
+   docommand(pdfdot)
+   docommand(svgdot)
+}%
+\vskip5mm \hskip-100bp \noindent \hbox{\hbox{Node list:}\vtop{\kern-15bp\includegraphics[scale=0.30]{mybox#2.pdf}}}
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\makesvg#1{%
+\directlua{%
+local cnt=tex.count["examcnt"]
+local cmd=[[latex -output-format=dvi ./TeXandLuaCode/makebox.tex]]
+local texres=docommand(cmd)
+local marg = assert(io.open("latex.txt","w"))
+marg:write(texres)
+marg:flush()
+marg:close()
+local svgcmd=[[dvisvgm -n -o]].." box"..cnt..".svg"..[[ ./makebox.dvi]]
+local svgres=docommand(svgcmd)
+local marg = assert(io.open("svgres.txt","w"))
+marg:write(svgres)
+marg:flush()
+marg:close()
+}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\long\def\dl#1{\directlua{%
+local p=[[\unexpanded{#1}]]
+local q=[[\setbox0=]]
+tex.settoks("global", "verby", p)
+local cnt=tex.count["examcnt"]
+tex.setcount("global", "examcnt", cnt+1)
+local marg = assert(io.open("texbox.tex","w"))
+marg:write(q)
+marg:write(p)
+marg:flush()
+marg:close()
+}\endgroup{{\par\noindent\ttfamily\the\verby\par\relax}\makesvg{\number\examcnt}}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\long\def\dolua{\begingroup\nullcats\dl}%
+\def\boxit#1{\lower\dp#1\vbox{\hrule\hbox{\vrule\copy#1\vrule}\kern-\the\dp#1\hrule\kern\the\dp#1\relax\kern-0.4pt\relax\hrule}}
+\def\boxchar#1{\setbox0=\hbox{#1}\boxit{0}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\dobox#1{%
+\dolua{#1}%
+\input texbox.tex%
+\vskip2mm%
+\noindent The box: \boxit{0} (width, depth, height)=(\the\wd0, \the\dp0, \the\ht0). Baseline drawn to show depth/height but will be visible only if depth is not zero.\par %
+\writebox{0}{\number\examcnt}%
+}

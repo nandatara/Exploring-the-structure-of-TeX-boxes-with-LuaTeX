@@ -1,0 +1,9 @@
+% DO NOT MODIFY THIS: It is used to create
+% SVG graphics representing TeX boxes.
+\documentclass{article}
+\begin{document}
+\def\boxit#1{\vbox{\hrule\hbox{\vrule\copy#1\vrule}\kern-\the\dp#1\hrule\kern\the\dp#1\relax\kern-0.4pt\relax\hrule}}
+\pagestyle{empty}
+\input texbox.tex
+\boxit{0}
+\end{document}

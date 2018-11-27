@@ -1,0 +1,37 @@
+\input{./TeXandLuaCode/texcode.tex}
+\documentclass{article}
+\usepackage[luatex]{graphicx}
+\begin{document}
+%There is just 1 command: \dobox{<box command>}.
+% Examples (see notes on \dobox{}, below)
+\dobox{\vbox to 25pt{\hbox{A}}}
+\dobox{\vbox to 25pt{A}}
+\dobox{\vbox to 25pt{A \hbox{B}}}
+\dobox{\vtop to 25pt{A\hfill B}}
+\dobox{\hbox to 25pt{A\hskip 10pt\hfill B}}
+\dobox{\hbox to100pt{%
+A\hskip4pt plus3pt minus 2pt
+B\hskip 0pt plus 2fil
+C\hskip 0pt plus 2fill
+D\hskip 0pt plus 3fill}}
+\dobox{\hbox{$\displaystyle \int f(x) dx$}}
+\end{document}
+
+%% NOTES: \dobox{....}
+%% The \dobox command does quite a few things: 
+% (1) It typesets the box's TeX code in your document
+% (2) It creates an SVG version of the TeX box that 
+%     you can embed in a web page 
+% (3) It creates a PDF graphic of the node list
+%     which is then imported into the main PDF document.
+%     Large node lists will be clipped by the page boundary
+%     but this is not a problem: just download a ZIP file of
+%     the project to access the PDF graphic if you want to use
+%     it elsewhere.
+% (4) It also generates an SVG file version of the node list
+%     which you can embed into web pages.%
+%
+%%% Note!!!:
+% To download a ZIP file containing all the generated graphics,
+% choose the "Input and Output Files" option
+%     
